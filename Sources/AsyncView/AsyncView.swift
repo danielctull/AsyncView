@@ -1,6 +1,9 @@
 import SwiftUI
 
 @available(iOS 15.0, *)
+@available(macOS 12, *)
+@available(tvOS 15.0, *)
+@available(watchOS 8.0, *)
 public struct AsyncView<Value, Initial, Success, Failure>: View
 where
 Initial: View,
@@ -38,6 +41,9 @@ Failure: View
 }
 
 @available(iOS 15.0, *)
+@available(macOS 12, *)
+@available(tvOS 15.0, *)
+@available(watchOS 8.0, *)
 extension AsyncView where Failure == Never {
 
     public init(
@@ -55,6 +61,9 @@ extension AsyncView where Failure == Never {
 }
 
 @available(iOS 15.0, *)
+@available(macOS 12, *)
+@available(tvOS 15.0, *)
+@available(watchOS 8.0, *)
 extension AsyncView {
 
     fileprivate enum Subview {
@@ -65,6 +74,9 @@ extension AsyncView {
 }
 
 @available(iOS 15.0, *)
+@available(macOS 12, *)
+@available(tvOS 15.0, *)
+@available(watchOS 8.0, *)
 extension AsyncView.Subview: View {
 
     var body: some View {
