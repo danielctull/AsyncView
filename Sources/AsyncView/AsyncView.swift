@@ -38,6 +38,23 @@ Failure: View
 }
 
 @available(iOS 15.0, *)
+extension AsyncView where Failure == Never {
+
+    public init(
+        task: @escaping () async -> Value,
+        initial: () -> Initial,
+        success: @escaping (Value) -> Success
+    ) {
+        self.init(
+            task: task,
+            initial: initial,
+            success: success,
+            failure: { fatalError($0.localizedDescription) }
+        )
+    }
+}
+
+@available(iOS 15.0, *)
 extension AsyncView {
 
     fileprivate enum Subview {
