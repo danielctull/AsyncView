@@ -63,7 +63,7 @@ extension AsyncView.Subview: View {
 
     var body: some View {
         switch self {
-        case let .initial(initial): initial
+        case let .initial(initial): ZStack { initial } // Ensures view exists
         case let .success(success): success
         case let .failure(failure): failure
         }
