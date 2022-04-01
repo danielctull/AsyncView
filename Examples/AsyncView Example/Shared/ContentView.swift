@@ -6,6 +6,8 @@ struct TaskView: View {
 
     let title: String
     let image: String
+    let foreground: Color
+    let background: Color
     let task: () async throws -> String
 
     var body: some View {
@@ -23,6 +25,11 @@ struct TaskView: View {
                 Text(error.localizedDescription)
             }
         }
+        .padding()
+        .progressViewStyle(CircularProgressViewStyle(tint: foreground))
+        .foregroundColor(foreground)
+        .background(background)
+        .cornerRadius(10)
     }
 }
 
@@ -41,23 +48,13 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 20) {
 
-            TaskView(title: "Success", image: "checkmark.circle") {
+            TaskView(title: "Success", image: "checkmark.circle", foreground: .black, background: .green) {
                 try await delayed(seconds: 2) { "Hello world" }
             }
-            .padding()
-            .progressViewStyle(CircularProgressViewStyle(tint: .black))
-            .foregroundColor(.black)
-            .background(Color.green)
-            .cornerRadius(10)
 
-            TaskView(title: "Failure", image: "xmark.circle") {
+            TaskView(title: "Failure", image: "xmark.circle", foreground: .white, background: .red) {
                 try await delayed(seconds: 3) { throw Failure() }
             }
-            .padding()
-            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-            .foregroundColor(.white)
-            .background(Color.red)
-            .cornerRadius(10)
         }
         .padding()
     }
