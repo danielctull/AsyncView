@@ -1,11 +1,7 @@
 import SwiftUI
 
-public struct AsyncView<Value, Initial, Success, Failure>: View
-where
-Initial: View,
-Success: View,
-Failure: View
-{
+public struct AsyncView<Value, Initial: View, Success: View, Failure: View>: View {
+    
     @State private var subview: Subview
     private let task: () async throws -> Value
     private let success: (Value) -> Success
@@ -51,6 +47,8 @@ extension AsyncView where Failure == Never {
         )
     }
 }
+
+// MARK: - Subview
 
 extension AsyncView {
 
