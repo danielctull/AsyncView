@@ -42,12 +42,34 @@ struct ContentView: View {
                 initial: LoadingView.init,
                 success: SuccessView.init,
                 failure: FailureView.init)
+
+            AsyncView {
+                await delayed(seconds: 2) { Success.random }
+            } initial: {
+                if Bool.random() {
+                    LoadingView()
+                } else {
+                    ProgressView()
+                }
+            } success: { value in
+                switch value {
+                case .hello: SuccessView(value: "Hello world")
+                case .goodbye: SuccessView(value: "Goodbye world")
+                }
+            }
         }
         .padding()
     }
 }
 
 struct Failure: Error {}
+
+enum Success {
+    case hello
+    case goodbye
+
+    static var random: Self { Bool.random() ? .hello : .goodbye }
+}
 
 struct LoadingView: View {
     var body: some View {

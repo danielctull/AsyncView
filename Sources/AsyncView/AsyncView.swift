@@ -9,9 +9,9 @@ public struct AsyncView<Value, Initial: View, Success: View, Failure: View>: Vie
 
     public init(
         task: @escaping () async throws -> Value,
-        initial: () -> Initial,
-        success: @escaping (Value) -> Success,
-        failure: @escaping (Error) -> Failure
+        @ViewBuilder initial: () -> Initial,
+        @ViewBuilder success: @escaping (Value) -> Success,
+        @ViewBuilder failure: @escaping (Error) -> Failure
     ) {
         _subview = State(initialValue: .initial(initial()))
         self.task = task
@@ -36,8 +36,8 @@ extension AsyncView where Failure == Never {
 
     public init(
         task: @escaping () async -> Value,
-        initial: () -> Initial,
-        success: @escaping (Value) -> Success
+        @ViewBuilder initial: () -> Initial,
+        @ViewBuilder success: @escaping (Value) -> Success
     ) {
         self.init(
             task: task,
@@ -54,8 +54,8 @@ extension AsyncView where Initial == EmptyView {
 
     public init(
         task: @escaping () async throws -> Value,
-        success: @escaping (Value) -> Success,
-        failure: @escaping (Error) -> Failure
+        @ViewBuilder success: @escaping (Value) -> Success,
+        @ViewBuilder failure: @escaping (Error) -> Failure
     ) {
         self.init(
             task: task,
@@ -70,7 +70,7 @@ extension AsyncView where Initial == EmptyView, Failure == Never {
 
     public init(
         task: @escaping () async -> Value,
-        success: @escaping (Value) -> Success
+        @ViewBuilder success: @escaping (Value) -> Success
     ) {
         self.init(
             task: task,
