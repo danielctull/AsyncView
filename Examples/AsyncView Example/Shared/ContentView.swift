@@ -2,39 +2,6 @@
 import AsyncView
 import SwiftUI
 
-struct TaskView: View {
-
-    let title: String
-    let image: String
-    let foreground: Color
-    let background: Color
-    let task: () async throws -> String
-
-    var body: some View {
-
-        VStack(spacing: 10) {
-            Label(title, systemImage: image)
-                .font(.title)
-            AsyncView {
-                try await task()
-            } initial: {
-                ProgressView()
-            } success: { value in
-                Text("\(value)")
-            } failure: { error in
-                Text(error.localizedDescription)
-            }
-        }
-        .padding()
-        .progressViewStyle(CircularProgressViewStyle(tint: foreground))
-        .foregroundColor(foreground)
-        .background(background)
-        .cornerRadius(10)
-    }
-}
-
-struct Failure: Error {}
-
 struct ContentView: View {
 
     private func delayed<T>(seconds: Int, _ task: @escaping () throws -> T) async throws -> T {
@@ -44,18 +11,76 @@ struct ContentView: View {
             }
         }
     }
+    
+    private func delayed<T>(seconds: Int, _ task: @escaping () -> T) async -> T {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .seconds(seconds)) {
+                continuation.resume(returning: task())
+            }
+        }
+    }
 
     var body: some View {
         VStack(spacing: 20) {
+            
+            AsyncView(
+                task: { await delayed(seconds: 2) { "Hello world" } },
+                success: SuccessView.init)
 
-            TaskView(title: "Success", image: "checkmark.circle", foreground: .black, background: .green) {
-                try await delayed(seconds: 2) { "Hello world" }
-            }
+            AsyncView(
+                task: { await delayed(seconds: 2) { "Hello world" } },
+                initial: LoadingView.init,
+                success: SuccessView.init)
 
-            TaskView(title: "Failure", image: "xmark.circle", foreground: .white, background: .red) {
-                try await delayed(seconds: 3) { throw Failure() }
-            }
+            AsyncView(
+                task: { try await delayed(seconds: 2) { throw Failure() } },
+                success: SuccessView.init,
+                failure: FailureView.init)
+
+            AsyncView(
+                task: { try await delayed(seconds: 2) { throw Failure() } },
+                initial: LoadingView.init,
+                success: SuccessView.init,
+                failure: FailureView.init)
         }
         .padding()
+    }
+}
+
+struct Failure: Error {}
+
+struct LoadingView: View {
+    var body: some View {
+        Text("Loading")
+    }
+}
+
+struct FailureView: View {
+    let error: Error
+    var body: some View {
+        VStack(spacing: 10) {
+            Label("Failure", systemImage: "xmark.circle")
+                .font(.title)
+            Text(error.localizedDescription)
+        }
+        .padding()
+        .foregroundColor(.white)
+        .background(.red)
+        .cornerRadius(10)
+    }
+}
+
+struct SuccessView: View {
+    let value: String
+    var body: some View {
+        VStack(spacing: 10) {
+            Label("Success", systemImage: "checkmark.circle")
+                .font(.title)
+            Text(value)
+        }
+        .padding()
+        .foregroundColor(.black)
+        .background(.green)
+        .cornerRadius(10)
     }
 }

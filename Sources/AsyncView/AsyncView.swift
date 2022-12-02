@@ -48,6 +48,39 @@ extension AsyncView where Failure == Never {
     }
 }
 
+// MARK: - Empty
+
+extension AsyncView where Initial == EmptyView {
+
+    public init(
+        task: @escaping () async throws -> Value,
+        success: @escaping (Value) -> Success,
+        failure: @escaping (Error) -> Failure
+    ) {
+        self.init(
+            task: task,
+            initial: EmptyView.init,
+            success: success,
+            failure: failure
+        )
+    }
+}
+
+extension AsyncView where Initial == EmptyView, Failure == Never {
+
+    public init(
+        task: @escaping () async -> Value,
+        success: @escaping (Value) -> Success
+    ) {
+        self.init(
+            task: task,
+            initial: EmptyView.init,
+            success: success,
+            failure: { fatalError($0.localizedDescription) }
+        )
+    }
+}
+
 // MARK: - Subview
 
 extension AsyncView {
