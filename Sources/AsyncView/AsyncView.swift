@@ -48,7 +48,7 @@ extension AsyncView where Failure == Never {
     }
 }
 
-// MARK: - Empty
+// MARK: - EmptyView
 
 extension AsyncView where Initial == EmptyView {
 
@@ -96,7 +96,9 @@ extension AsyncView.Subview: View {
 
     var body: some View {
         switch self {
-        case let .initial(initial): ZStack { initial } // Ensures view exists
+        case let .initial(initial) where initial is EmptyView:
+            ZStack { initial } // Ensures view exists as task won't start on EmptyView.
+        case let .initial(initial): initial
         case let .success(success): success
         case let .failure(failure): failure
         }
