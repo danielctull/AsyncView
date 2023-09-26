@@ -1,19 +1,22 @@
 import SwiftUI
 
-public struct AsyncView<Value, Initial: View, Success: View, Failure: View>: View {
-    
+public struct AsyncView<ID: Equatable, Value, Initial: View, Success: View, Failure: View>: View {
+
     @State private var subview: Subview
-    private let task: () async throws -> Value
+    private let id: ID
+    private let task: (ID) async throws -> Value
     private let success: (Value) -> Success
     private let failure: (Error) -> Failure
 
     public init(
-        task: @escaping () async throws -> Value,
+        id: ID,
+        task: @escaping (ID) async throws -> Value,
         @ViewBuilder initial: () -> Initial,
         @ViewBuilder success: @escaping (Value) -> Success,
         @ViewBuilder failure: @escaping (Error) -> Failure
     ) {
         _subview = State(initialValue: .initial(initial()))
+        self.id = id
         self.task = task
         self.success = success
         self.failure = failure
@@ -21,9 +24,9 @@ public struct AsyncView<Value, Initial: View, Success: View, Failure: View>: Vie
 
     public var body: some View {
         subview
-            .task {
+            .task(id: id) {
                 do {
-                    let value = try await task()
+                    let value = try await task(id)
                     subview = .success(success(value))
                 } catch {
                     subview = .failure(failure(error))
@@ -35,11 +38,13 @@ public struct AsyncView<Value, Initial: View, Success: View, Failure: View>: Vie
 extension AsyncView where Failure == Never {
 
     public init(
-        task: @escaping () async -> Value,
+        id: ID,
+        task: @escaping (ID) async -> Value,
         @ViewBuilder initial: () -> Initial,
         @ViewBuilder success: @escaping (Value) -> Success
     ) {
         self.init(
+            id: id,
             task: task,
             initial: initial,
             success: success,
@@ -53,11 +58,13 @@ extension AsyncView where Failure == Never {
 extension AsyncView where Initial == EmptyView {
 
     public init(
-        task: @escaping () async throws -> Value,
+        id: ID,
+        task: @escaping (ID) async throws -> Value,
         @ViewBuilder success: @escaping (Value) -> Success,
         @ViewBuilder failure: @escaping (Error) -> Failure
     ) {
         self.init(
+            id: id,
             task: task,
             initial: EmptyView.init,
             success: success,
@@ -69,10 +76,12 @@ extension AsyncView where Initial == EmptyView {
 extension AsyncView where Initial == EmptyView, Failure == Never {
 
     public init(
-        task: @escaping () async -> Value,
+        id: ID,
+        task: @escaping (ID) async -> Value,
         @ViewBuilder success: @escaping (Value) -> Success
     ) {
         self.init(
+            id: id,
             task: task,
             initial: EmptyView.init,
             success: success,
@@ -102,5 +111,73 @@ extension AsyncView.Subview: View {
         case let .success(success): success
         case let .failure(failure): failure
         }
+    }
+}
+
+// MARK: - No ID
+
+public struct NoID: Equatable {}
+
+extension AsyncView where ID == NoID {
+    public init(
+        task: @escaping () async throws -> Value,
+        @ViewBuilder initial: () -> Initial,
+        @ViewBuilder success: @escaping (Value) -> Success,
+        @ViewBuilder failure: @escaping (Error) -> Failure
+    ) {
+
+        self.init(
+            id: NoID(),
+            task: { _ in try await task() },
+            initial: initial,
+            success: success,
+            failure: failure)
+    }
+}
+
+extension AsyncView where ID == NoID, Failure == Never {
+
+    public init(
+        task: @escaping () async -> Value,
+        @ViewBuilder initial: () -> Initial,
+        @ViewBuilder success: @escaping (Value) -> Success
+    ) {
+        self.init(
+            task: task,
+            initial: initial,
+            success: success,
+            failure: { fatalError($0.localizedDescription) }
+        )
+    }
+}
+
+extension AsyncView where ID == NoID, Initial == EmptyView {
+
+    public init(
+        task: @escaping () async throws -> Value,
+        @ViewBuilder success: @escaping (Value) -> Success,
+        @ViewBuilder failure: @escaping (Error) -> Failure
+    ) {
+        self.init(
+            task: task,
+            initial: EmptyView.init,
+            success: success,
+            failure: failure
+        )
+    }
+}
+
+extension AsyncView where ID == NoID, Initial == EmptyView, Failure == Never {
+
+    public init(
+        task: @escaping () async -> Value,
+        @ViewBuilder success: @escaping (Value) -> Success
+    ) {
+        self.init(
+            task: task,
+            initial: EmptyView.init,
+            success: success,
+            failure: { fatalError($0.localizedDescription) }
+        )
     }
 }
